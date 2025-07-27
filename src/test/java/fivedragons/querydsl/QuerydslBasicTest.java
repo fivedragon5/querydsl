@@ -1,11 +1,14 @@
 package fivedragons.querydsl;
 
 import com.querydsl.core.QueryResults;
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import fivedragons.querydsl.entity.Member;
 import fivedragons.querydsl.entity.QMember;
 import fivedragons.querydsl.entity.Team;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnit;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import static fivedragons.querydsl.entity.QMember.*;
+import static fivedragons.querydsl.entity.QTeam.team;
 
 @SpringBootTest
 @Transactional
@@ -168,5 +172,151 @@ public class QuerydslBasicTest {
         Assertions.assertEquals(result.getResults().size(), 2);
         Assertions.assertEquals(result.getOffset(), 1);
         Assertions.assertEquals(result.getLimit(), 2);
+    }
+
+    @Test
+    void aggregation() {
+        List<Tuple> result = queryFactory
+                .select(
+                        member.count(),
+                        member.age.sum(),
+                        member.age.avg(),
+                        member.age.max(),
+                        member.age.min()
+                )
+                .from(member)
+                .fetch();
+
+        Tuple tuple = result.get(0);
+        Assertions.assertEquals(tuple.get(member.count()), 4L);
+        Assertions.assertEquals(tuple.get(member.age.sum()), 100);
+        Assertions.assertEquals(tuple.get(member.age.avg()), 25);
+        Assertions.assertEquals(tuple.get(member.age.max()), 40);
+        Assertions.assertEquals(tuple.get(member.age.min()), 10);
+    }
+
+    /**
+     *  팀의 이름과 각 팀의 평균 연령을 구하기
+     */
+    @Test
+    void group() {
+        List<Tuple> result = queryFactory
+                .select(team.name, member.age.avg())
+                .from(member)
+                .join(member.team, team)
+                .groupBy(team.name)
+                .fetch();
+
+        Tuple teamA = result.get(0);
+        Tuple teamB = result.get(1);
+
+        Assertions.assertEquals(teamA.get(team.name), "Team A");
+        Assertions.assertEquals(teamA.get(member.age.avg()), 15);
+        Assertions.assertEquals(teamB.get(team.name), "Team B");
+        Assertions.assertEquals(teamB.get(member.age.avg()), 35);
+    }
+
+    /**
+     * 팀 A에 소속된 모든 회원
+     */
+    @Test
+    void join() {
+        List<Member> fetch = queryFactory
+                .selectFrom(member)
+                .join(member.team, team)
+                .where(team.name.eq("Team A"))
+                .fetch();
+
+        Assertions.assertEquals(fetch.size(), 2);
+        Assertions.assertTrue(
+                fetch.stream()
+                        .allMatch(m -> m.getTeam().getName().equals("Team A"))
+        );
+    }
+
+    @Test
+    void theta_join() {
+        em.persist(new Member("Team A", 0, null));
+        em.persist(new Member("Team B", 0, null));
+
+        List<Member> fetch = queryFactory
+                .select(member)
+                .from(member, team)
+                .where(member.username.eq(team.name))
+                .fetch();
+
+        Assertions.assertEquals(fetch.size(), 2);
+    }
+
+    /**
+     * 회원과 팀을 조인하면서, 팀 이름이 Team A인 팀만 조인, 회원은 모두 조회
+     * JPQL : select m, t from Member m left join m.team t on t.name = 'TEAM A'
+     */
+    @Test
+    void join_on_filtering() {
+        List<Tuple> fetch = queryFactory
+                .select(member, team)
+                .from(member)
+                .join(member.team, team).on(team.name.eq("Team A"))
+                .fetch();
+
+        for (Tuple tuple : fetch) {
+            Member member = tuple.get(0, Member.class);
+            Team team = tuple.get(1, Team.class);
+            System.out.println("member: " + member + ", team: " + team);
+        }
+    }
+
+    /**
+     * 연관관계가 없는 엔티티 외부 조인
+     * 회원의 이름이 팀 이름과 같은 대상 외부조인
+     */
+    @Test
+    void join_on_no_relation() {
+        em.persist(new Member("Team A", 0, null));
+        em.persist(new Member("Team B", 0, null));
+        em.persist(new Member("Team C", 0, null));
+
+        List<Tuple> result = queryFactory
+                .select(member, team)
+                .from(member)
+                .leftJoin(team).on(member.username.eq(team.name))
+                .fetch();
+
+        for (Tuple tuple : result) {
+            System.out.println("tuple: " + tuple);
+        }
+    }
+
+    @PersistenceUnit
+    EntityManagerFactory emf;
+
+    @Test
+    void fetch_join_no() {
+        em.flush();
+        em.clear();
+
+        Member member1 = queryFactory
+                .selectFrom(member)
+                .where(member.username.eq("member1"))
+                .fetchOne();
+
+        boolean loaded = emf.getPersistenceUnitUtil().isLoaded(member1.getTeam());
+        Assertions.assertEquals(loaded, false);
+    }
+
+    @Test
+    void fetch_join_use() {
+        em.flush();
+        em.clear();
+
+        Member member1 = queryFactory
+                .selectFrom(member)
+                .join(member.team, team).fetchJoin()
+                .where(member.username.eq("member1"))
+                .fetchOne();
+
+        boolean loaded = emf.getPersistenceUnitUtil().isLoaded(member1.getTeam());
+        Assertions.assertEquals(loaded, true);
     }
 }
