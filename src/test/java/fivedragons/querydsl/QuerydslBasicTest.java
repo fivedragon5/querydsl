@@ -2,7 +2,6 @@ package fivedragons.querydsl;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import fivedragons.querydsl.entity.Member;
-import fivedragons.querydsl.entity.QMember;
 import fivedragons.querydsl.entity.Team;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Assertions;
@@ -11,6 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+
+import static fivedragons.querydsl.entity.QMember.*;
 
 @SpringBootTest
 @Transactional
@@ -23,6 +24,7 @@ public class QuerydslBasicTest {
 
     @BeforeEach
     public void setUp() {
+        queryFactory = new JPAQueryFactory(em);
         // given
         Team teamA = new Team("Team A");
         Team teamB = new Team("Team B");
@@ -51,13 +53,35 @@ public class QuerydslBasicTest {
 
     @Test
     void startQuerydsl() {
-        QMember m = new QMember("m");
+        Member member1 = queryFactory
+                .select(member)
+                .from(member)
+                .where(member.username.eq("member1"))
+                .fetchOne();
+        Assertions.assertEquals(member1.getUsername(), "member1");
+    }
 
-        Member member1 = queryFactory.select(m)
-                .from(m)
-                .where(m.username.eq("member1"))
+    @Test
+    void search() {
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .where(member.username.eq("member1")
+                        .and(member.age.goe(10)))
                 .fetchOne();
 
-        Assertions.assertEquals(member1.getUsername(), "member1");
+        Assertions.assertEquals(findMember.getUsername(), "member1");
+    }
+
+    @Test
+    void searchAndParam() {
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .where(
+                        member.username.eq("member1"),
+                        member.age.goe(10)
+                )
+                .fetchOne();
+
+        Assertions.assertEquals(findMember.getUsername(), "member1");
     }
 }
