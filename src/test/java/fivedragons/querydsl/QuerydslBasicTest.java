@@ -1,5 +1,6 @@
 package fivedragons.querydsl;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ExpressionUtils;
@@ -30,6 +31,7 @@ import java.util.List;
 import static com.querydsl.jpa.JPAExpressions.*;
 import static fivedragons.querydsl.entity.QMember.*;
 import static fivedragons.querydsl.entity.QTeam.team;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @Transactional
@@ -66,7 +68,7 @@ public class QuerydslBasicTest {
                 .setParameter("username", "member1")
                 .getSingleResult();
 
-        Assertions.assertEquals(member1.getUsername(), "member1");
+        assertEquals(member1.getUsername(), "member1");
     }
 
     @Test
@@ -76,7 +78,7 @@ public class QuerydslBasicTest {
                 .from(member)
                 .where(member.username.eq("member1"))
                 .fetchOne();
-        Assertions.assertEquals(member1.getUsername(), "member1");
+        assertEquals(member1.getUsername(), "member1");
     }
 
     @Test
@@ -87,7 +89,7 @@ public class QuerydslBasicTest {
                         .and(member.age.goe(10)))
                 .fetchOne();
 
-        Assertions.assertEquals(findMember.getUsername(), "member1");
+        assertEquals(findMember.getUsername(), "member1");
     }
 
     @Test
@@ -100,7 +102,7 @@ public class QuerydslBasicTest {
                 )
                 .fetchOne();
 
-        Assertions.assertEquals(findMember.getUsername(), "member1");
+        assertEquals(findMember.getUsername(), "member1");
     }
 
     @Test
@@ -151,8 +153,8 @@ public class QuerydslBasicTest {
         Member member6 = fetch.get(1);
         Member memberNull = fetch.get(2);
 
-        Assertions.assertEquals(member5.getUsername(), "member5");
-        Assertions.assertEquals(member6.getUsername(), "member6");
+        assertEquals(member5.getUsername(), "member5");
+        assertEquals(member6.getUsername(), "member6");
         Assertions.assertNull(memberNull.getUsername());
     }
 
@@ -165,7 +167,7 @@ public class QuerydslBasicTest {
                 .limit(2)
                 .fetch();
 
-        Assertions.assertEquals(result.size(), 2);
+        assertEquals(result.size(), 2);
     }
 
     @Test
@@ -177,10 +179,10 @@ public class QuerydslBasicTest {
                 .limit(2)
                 .fetchResults();
 
-        Assertions.assertEquals(result.getTotal(), 4L);
-        Assertions.assertEquals(result.getResults().size(), 2);
-        Assertions.assertEquals(result.getOffset(), 1);
-        Assertions.assertEquals(result.getLimit(), 2);
+        assertEquals(result.getTotal(), 4L);
+        assertEquals(result.getResults().size(), 2);
+        assertEquals(result.getOffset(), 1);
+        assertEquals(result.getLimit(), 2);
     }
 
     @Test
@@ -197,11 +199,11 @@ public class QuerydslBasicTest {
                 .fetch();
 
         Tuple tuple = result.get(0);
-        Assertions.assertEquals(tuple.get(member.count()), 4L);
-        Assertions.assertEquals(tuple.get(member.age.sum()), 100);
-        Assertions.assertEquals(tuple.get(member.age.avg()), 25);
-        Assertions.assertEquals(tuple.get(member.age.max()), 40);
-        Assertions.assertEquals(tuple.get(member.age.min()), 10);
+        assertEquals(tuple.get(member.count()), 4L);
+        assertEquals(tuple.get(member.age.sum()), 100);
+        assertEquals(tuple.get(member.age.avg()), 25);
+        assertEquals(tuple.get(member.age.max()), 40);
+        assertEquals(tuple.get(member.age.min()), 10);
     }
 
     /**
@@ -219,10 +221,10 @@ public class QuerydslBasicTest {
         Tuple teamA = result.get(0);
         Tuple teamB = result.get(1);
 
-        Assertions.assertEquals(teamA.get(team.name), "Team A");
-        Assertions.assertEquals(teamA.get(member.age.avg()), 15);
-        Assertions.assertEquals(teamB.get(team.name), "Team B");
-        Assertions.assertEquals(teamB.get(member.age.avg()), 35);
+        assertEquals(teamA.get(team.name), "Team A");
+        assertEquals(teamA.get(member.age.avg()), 15);
+        assertEquals(teamB.get(team.name), "Team B");
+        assertEquals(teamB.get(member.age.avg()), 35);
     }
 
     /**
@@ -236,7 +238,7 @@ public class QuerydslBasicTest {
                 .where(team.name.eq("Team A"))
                 .fetch();
 
-        Assertions.assertEquals(fetch.size(), 2);
+        assertEquals(fetch.size(), 2);
         Assertions.assertTrue(
                 fetch.stream()
                         .allMatch(m -> m.getTeam().getName().equals("Team A"))
@@ -254,7 +256,7 @@ public class QuerydslBasicTest {
                 .where(member.username.eq(team.name))
                 .fetch();
 
-        Assertions.assertEquals(fetch.size(), 2);
+        assertEquals(fetch.size(), 2);
     }
 
     /**
@@ -311,7 +313,7 @@ public class QuerydslBasicTest {
                 .fetchOne();
 
         boolean loaded = emf.getPersistenceUnitUtil().isLoaded(member1.getTeam());
-        Assertions.assertEquals(loaded, false);
+        assertEquals(loaded, false);
     }
 
     @Test
@@ -326,7 +328,7 @@ public class QuerydslBasicTest {
                 .fetchOne();
 
         boolean loaded = emf.getPersistenceUnitUtil().isLoaded(member1.getTeam());
-        Assertions.assertEquals(loaded, true);
+        assertEquals(loaded, true);
     }
 
     /**
@@ -345,8 +347,8 @@ public class QuerydslBasicTest {
                 ))
                 .fetch();
 
-        Assertions.assertEquals(fetch.size(), 1);
-        Assertions.assertEquals(fetch.get(0).getAge(), 40);
+        assertEquals(fetch.size(), 1);
+        assertEquals(fetch.get(0).getAge(), 40);
     }
 
     /**
@@ -365,7 +367,7 @@ public class QuerydslBasicTest {
                 ))
                 .fetch();
 
-        Assertions.assertEquals(fetch.size(), 2);
+        assertEquals(fetch.size(), 2);
         Assertions.assertTrue(
                 fetch.stream()
                         .allMatch(m -> m.getAge() >= 25)
@@ -386,7 +388,7 @@ public class QuerydslBasicTest {
                 ))
                 .fetch();
 
-        Assertions.assertEquals(fetch.size(), 3);
+        assertEquals(fetch.size(), 3);
         Assertions.assertTrue(
                 fetch.stream()
                         .allMatch(m -> m.getAge() > 10)
@@ -601,5 +603,28 @@ public class QuerydslBasicTest {
         for (MemberDto memberDto : result) {
             System.out.println("memberDto = " + memberDto);
         }
+    }
+
+    @Test
+    void dynamicQuery_BooleanBuilder() {
+        String usernameParma = "member1";
+        Integer ageParam = 10;
+
+        List<Member> result = searchMember1(usernameParma, ageParam);
+        assertEquals(result.size(), 1);
+    }
+
+    private List<Member> searchMember1(String usernameCond, Integer ageCond) {
+        BooleanBuilder builder = new BooleanBuilder();
+        if (usernameCond != null) {
+            builder.and(member.username.eq(usernameCond));
+        }
+        if (ageCond != null) {
+            builder.and(member.age.eq(ageCond));
+        }
+        return queryFactory
+                .selectFrom(member)
+                .where(builder)
+                .fetch();
     }
 }
