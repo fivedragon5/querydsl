@@ -2,7 +2,6 @@ package fivedragons.querydsl.repository;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import fivedragons.querydsl.entity.Member;
-import fivedragons.querydsl.entity.QMember;
 import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Repository;
 
