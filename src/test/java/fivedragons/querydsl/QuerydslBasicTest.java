@@ -110,12 +110,12 @@ public class QuerydslBasicTest {
     @Test
     void resultFetchBeforeVersion() {
         List<Member> fetch = queryFactory
-                .select(member)
+                .selectFrom(member)
                 .fetch();
 
-        Member fetchOne = queryFactory
-                .selectFrom(member)
-                .fetchOne();
+//        Member fetchOne = queryFactory
+//                .selectFrom(member)
+//                .fetchOne();
 
         Member fetchFirst = queryFactory
                 .selectFrom(member)
