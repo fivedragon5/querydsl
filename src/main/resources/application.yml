@@ -1,6 +1,7 @@
 spring:
-  profiles:
-    active: local
+  config:
+    activate:
+      on-profile: local
   datasource:
     url: jdbc:h2:tcp://localhost/~/DB/querydsl
     username: sa
