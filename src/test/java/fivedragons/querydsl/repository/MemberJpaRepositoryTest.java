@@ -1,13 +1,11 @@
 package fivedragons.querydsl.repository;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import fivedragons.querydsl.dto.MemberSearchCondition;
 import fivedragons.querydsl.dto.MemberTeamDto;
 import fivedragons.querydsl.entity.Member;
 import fivedragons.querydsl.entity.Team;
 import jakarta.persistence.EntityManager;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

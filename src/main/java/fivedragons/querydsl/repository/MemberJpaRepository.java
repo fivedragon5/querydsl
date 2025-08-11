@@ -6,19 +6,16 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import fivedragons.querydsl.dto.MemberSearchCondition;
 import fivedragons.querydsl.dto.MemberTeamDto;
-import fivedragons.querydsl.dto.QMemberDto;
 import fivedragons.querydsl.dto.QMemberTeamDto;
 import fivedragons.querydsl.entity.Member;
 import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Optional;
 
 import static fivedragons.querydsl.entity.QMember.member;
 import static fivedragons.querydsl.entity.QTeam.team;
-import static org.apache.logging.log4j.util.Strings.isEmpty;
 import static org.springframework.util.StringUtils.hasText;
 
 @Repository
