@@ -1,7 +1,7 @@
 spring:
   config:
     activate:
-      on-profile: local
+      on-profile: test
   datasource:
     url: jdbc:h2:tcp://localhost/~/DB/querydsl
     username: sa
@@ -13,7 +13,7 @@ spring:
       ddl-auto: create
     properties:
       hibernate:
-#        format_sql: true
+        #        format_sql: true
         show-sql: true
         use_sql_comments: true
         format_sql: true
